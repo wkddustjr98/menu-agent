@@ -2,12 +2,20 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
 
-from ai.recommender import Recommender
+from services.menu_service import MenuService
 
 
-app = FastAPI(title="SK hynix Menu Agent")
+app = FastAPI(
+    title="SK hynix Menu Agent"
+)
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key="CHANGE_THIS_SECRET_KEY"
+)
 
 app.mount(
     "/static",
@@ -17,48 +25,42 @@ app.mount(
 
 templates = Jinja2Templates(directory="templates")
 
-recommender = Recommender()
+service = MenuService()
 
 
-class RecommendRequest(BaseModel):
+class ChatRequest(BaseModel):
     message: str
-    menus: list
-    history: list = []
 
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
+
     return templates.TemplateResponse(
         request,
         "chat.html"
     )
 
 
-@app.post("/api/recommend")
-async def recommend(req: RecommendRequest):
+@app.post("/api/chat")
+async def chat(req: ChatRequest, request: Request):
 
     try:
-        history = req.history or []
 
-        answer = recommender.chat(
-            user_message=req.message,
-            menus=req.menus,
-            history=history
+        result = await service.process(
+            req.message,
+            request.session
         )
 
         return {
             "success": True,
-            "data": {
-                "type": "recommend",
-                "recommendation": answer,
-                "history": history
-            }
+            "data": result
         }
 
     except Exception as e:
 
         import traceback
-        traceback.print_exc()
+
+        traceback.print_exc()      # ★ 터미널에 오류 전체 출력
 
         return JSONResponse(
             status_code=500,
@@ -69,6 +71,19 @@ async def recommend(req: RecommendRequest):
         )
 
 
+@app.get("/api/reset")
+async def reset(request: Request):
+
+    request.session.clear()
+
+    return {
+        "success": True
+    }
+
+
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+
+    return {
+        "status": "ok"
+    }

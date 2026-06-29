@@ -7,7 +7,6 @@ from services.formatter import Formatter
 class MenuService:
 
     def __init__(self):
-
         self.parser = RuleParser()
         self.api = MenuAPI()
         self.formatter = Formatter()
@@ -22,18 +21,15 @@ class MenuService:
         # ==================================================
         # 1. 메뉴 조회
         # ==================================================
-
         if parsed.intent == "menu":
 
             if parsed.campus is None:
-
                 return {
                     "type": "ask",
                     "question": "어느 캠퍼스인가요?\n(이천 / 청주 / 분당)"
                 }
 
             if parsed.cafeteria_seq is None:
-
                 return {
                     "type": "ask",
                     "question": "어느 식당인가요?"
@@ -61,47 +57,54 @@ class MenuService:
 
             menus = self.formatter.format(raw_menus)
 
+            # 핵심:
+            # session을 완전히 새 조회 결과로 덮어쓴다.
+            session.clear()
             session["query"] = query
             session["menus"] = menus
             session["history"] = []
 
+            print("NEW QUERY:", session["query"])
+            print("NEW MENUS:", [m.get("main") for m in session["menus"]])
+
             return {
                 "type": "menu",
-                "query": query,
-                "menus": menus
+                "query": session["query"],
+                "menus": session["menus"]
             }
 
         # ==================================================
         # 2. 추천 / 후속 질문
         # ==================================================
-
         if parsed.intent in ["recommend", "followup"]:
 
-            if "menus" not in session:
+            menus = session.get("menus", [])
+            query = session.get("query", {})
+            history = session.get("history", [])
 
+            if not menus:
                 return {
                     "type": "ask",
                     "question": "먼저 메뉴를 조회해주세요.\n예: 이천 SKY 점심"
                 }
 
-            history = session.setdefault("history", [])
+            print("ASK AI QUERY:", query)
+            print("ASK AI WITH MENUS:", [m.get("main") for m in menus])
 
             answer = self.recommender.chat(
                 user_message=message,
-                menus=session["menus"],
+                menus=menus,
                 history=history
             )
+
+            session["history"] = history
 
             return {
                 "type": "recommend",
                 "recommendation": answer,
-                "menus": session.get("menus", []),
-                "query": session.get("query", {})
+                "menus": menus,
+                "query": query
             }
-
-        # ==================================================
-        # 3. 기본 응답
-        # ==================================================
 
         return {
             "type": "ask",

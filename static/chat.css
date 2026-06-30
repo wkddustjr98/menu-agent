@@ -4,198 +4,215 @@
     box-sizing:border-box;
 }
 
+html,
 body{
+    width:100%;
+    height:100%;
+}
 
+body{
     background:#ececec;
-
-    font-family:
-    "Segoe UI",
-    sans-serif;
-
+    font-family:"Segoe UI", sans-serif;
 }
 
 .container{
-
     width:900px;
-
+    max-width:100%;
     height:92vh;
-
     margin:20px auto;
-
     background:white;
-
     display:flex;
-
     flex-direction:column;
-
     border-radius:15px;
-
     overflow:hidden;
-
     box-shadow:0 5px 20px rgba(0,0,0,.15);
-
 }
 
 header{
-
     background:#d71920;
-
     color:white;
-
     padding:20px;
-
+    flex-shrink:0;
 }
 
 header h1{
-
     margin-bottom:8px;
-
 }
 
 #chat-box{
-
     flex:1;
-
     overflow-y:auto;
-
     padding:25px;
-
     background:#f7f7f7;
-
 }
 
 .user-message{
-
     margin-left:auto;
-
     background:#d71920;
-
     color:white;
-
     max-width:70%;
-
     padding:16px;
-
     border-radius:15px;
-
     margin-bottom:20px;
-
+    word-break:break-word;
 }
 
 .bot-message{
-
     background:white;
-
     border:1px solid #ddd;
-
     max-width:70%;
-
     padding:16px;
-
     border-radius:15px;
-
     margin-bottom:20px;
-
+    word-break:break-word;
 }
 
 .loading{
-
     color:#777;
-
     font-style:italic;
-
 }
 
 .menu-card{
-
     background:white;
-
     border:1px solid #ddd;
-
     border-radius:12px;
-
     padding:15px;
-
     margin-top:15px;
-
 }
 
 .menu-title{
-
     font-size:20px;
-
     font-weight:bold;
-
     margin-bottom:10px;
-
 }
 
 .rating{
-
     color:#ff9800;
-
     margin-bottom:10px;
-
 }
 
 .menu-card ul{
-
     margin-left:20px;
+}
 
+.recommend-box{
+    background:#f1f8ff;
+    border-left:5px solid #3b82f6;
+    padding:14px;
+    border-radius:8px;
+    line-height:1.7;
 }
-.recommend-box {
-    background: #f1f8ff;
-    border-left: 5px solid #3b82f6;
-    padding: 14px;
-    border-radius: 8px;
-    line-height: 1.7;
-}
+
 footer{
-
     display:flex;
-
     padding:20px;
-
     gap:10px;
-
     border-top:1px solid #ddd;
-
+    flex-shrink:0;
+    background:white;
 }
 
 #message-input{
-
     flex:1;
-
+    min-width:0;
     padding:14px;
-
     font-size:17px;
-
     border-radius:10px;
-
     border:1px solid #bbb;
-
 }
 
 #send-btn{
-
     width:120px;
-
+    flex-shrink:0;
     background:#d71920;
-
     color:white;
-
     border:none;
-
     border-radius:10px;
-
     cursor:pointer;
-
     font-size:17px;
-
 }
 
 #send-btn:hover{
-
     opacity:.9;
+}
 
+/* =========================
+   Mobile
+========================= */
+
+@media (max-width:768px){
+
+    body{
+        background:white;
+    }
+
+    .container{
+        width:100%;
+        height:100dvh;
+        margin:0;
+        border-radius:0;
+        box-shadow:none;
+    }
+
+    header{
+        padding:14px 16px;
+    }
+
+    header h1{
+        font-size:20px;
+        margin-bottom:4px;
+    }
+
+    header p{
+        font-size:13px;
+    }
+
+    #chat-box{
+        padding:14px;
+    }
+
+    .user-message,
+    .bot-message{
+        max-width:88%;
+        padding:12px;
+        border-radius:13px;
+        margin-bottom:14px;
+        font-size:14px;
+        line-height:1.5;
+    }
+
+    .menu-card{
+        padding:12px;
+        margin-top:12px;
+        border-radius:10px;
+        font-size:14px;
+    }
+
+    .menu-title{
+        font-size:17px;
+    }
+
+    .menu-card ul{
+        margin-left:16px;
+    }
+
+    footer{
+        padding:10px;
+        gap:8px;
+        align-items:center;
+    }
+
+    #message-input{
+        height:44px;
+        padding:10px 12px;
+        font-size:15px;
+        border-radius:9px;
+    }
+
+    #send-btn{
+        width:72px;
+        height:44px;
+        font-size:15px;
+        border-radius:9px;
+    }
 }

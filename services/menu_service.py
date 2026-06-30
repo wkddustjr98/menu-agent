@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from api.menu_api import MenuAPI
 from ai.parser import RuleParser
 from ai.recommender import Recommender
@@ -12,10 +14,33 @@ class MenuService:
         self.formatter = Formatter()
         self.recommender = Recommender()
 
+        # 서버 메모리에 실제 대화 상태 저장
+        self.store = {}
+
+    def _get_sid(self, session: dict):
+        if "sid" not in session:
+            session["sid"] = str(uuid4())
+
+        return session["sid"]
+
+    def _get_state(self, sid: str):
+        if sid not in self.store:
+            self.store[sid] = {
+                "query": {},
+                "menus": [],
+                "history": []
+            }
+
+        return self.store[sid]
+
     async def process(self, message: str, session: dict):
 
-        parsed = self.parser.parse(message, session)
+        sid = self._get_sid(session)
+        state = self._get_state(sid)
 
+        parsed = self.parser.parse(message, state)
+
+        print("SID:", sid)
         print("PARSED:", parsed)
 
         # ==================================================
@@ -57,20 +82,21 @@ class MenuService:
 
             menus = self.formatter.format(raw_menus)
 
-            # 핵심:
-            # session을 완전히 새 조회 결과로 덮어쓴다.
-            session.clear()
-            session["query"] = query
-            session["menus"] = menus
-            session["history"] = []
+            # 쿠키 session에는 sid만 저장하고,
+            # 실제 menus/history는 서버 메모리에 저장
+            self.store[sid] = {
+                "query": query,
+                "menus": menus,
+                "history": []
+            }
 
-            print("NEW QUERY:", session["query"])
-            print("NEW MENUS:", [m.get("main") for m in session["menus"]])
+            print("NEW QUERY:", query)
+            print("NEW MENUS:", [m.get("main") for m in menus])
 
             return {
                 "type": "menu",
-                "query": session["query"],
-                "menus": session["menus"]
+                "query": query,
+                "menus": menus
             }
 
         # ==================================================
@@ -78,9 +104,11 @@ class MenuService:
         # ==================================================
         if parsed.intent in ["recommend", "followup"]:
 
-            menus = session.get("menus", [])
-            query = session.get("query", {})
-            history = session.get("history", [])
+            state = self._get_state(sid)
+
+            menus = state.get("menus", [])
+            query = state.get("query", {})
+            history = state.get("history", [])
 
             if not menus:
                 return {
@@ -97,7 +125,7 @@ class MenuService:
                 history=history
             )
 
-            session["history"] = history
+            state["history"] = history
 
             return {
                 "type": "recommend",
